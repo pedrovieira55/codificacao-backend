@@ -20,4 +20,4 @@ Mapeamento de URL: Ajustei o app.use para definir o caminho (path) da API. Mudam
 Resolução de Dependências: Corrigi os caminhos de importação (import) que haviam quebrado quando os arquivos foram renomeados na pasta do VS Code.
 
 4. Testes de Consumo (Thunder Client)
-Validei que, ao enviar um JSON no corpo (Body) da requisição, o servidor agora processa múltiplos campos e não apenas um nome simple
+Validei que, ao enviar um JSON no corpo (Body) da requisição, o servidor agora processa múltiplos campos e não apenas um nome simples
