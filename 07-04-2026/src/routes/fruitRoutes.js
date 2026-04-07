@@ -3,7 +3,7 @@ import { fruitService } from '../services/fruit.service.js';
 
 const router = Router();
 
-// GET - Listar todas
+// GET - Listar todaas
 router.get('/', (req, res) => res.json(fruitService.getAll()));
 
 // PATCH - Atualização parcial (EXERCÍCIO 1)
