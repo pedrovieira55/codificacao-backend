@@ -1,0 +1,7 @@
+{
+  "name": "atividade-fs-json",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Praticando manipulação de arquivos com Node.js",
+  "main": "index.js"
+}
