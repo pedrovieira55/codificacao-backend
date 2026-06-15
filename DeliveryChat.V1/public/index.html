@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery Chat - Premium Green</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    #chat-messages::-webkit-scrollbar { width: 5px; }
+    #chat-messages::-webkit-scrollbar-track { background: transparent; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+  </style>
+</head>
+<body class="bg-gray-50 h-screen flex justify-center items-center p-4 overflow-hidden relative antialiased">
+
+  <div class="flex flex-col items-center w-full max-w-md transition-all duration-300" id="main-container">
+    
+    <div class="flex bg-gray-200/80 p-1.5 rounded-xl mb-3 w-full backdrop-blur-sm">
+      <button id="role-customer-btn" class="flex-1 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all duration-200 transform active:scale-95">
+        👤 Falar como Cliente
+      </button>
+      <button id="role-attendant-btn" class="flex-1 text-gray-600 hover:text-gray-900 px-4 py-2.5 rounded-lg text-xs font-bold opacity-60 transition-all duration-200 transform active:scale-95">
+        🛠️ Falar como Atendente
+      </button>
+    </div>
+
+    <div class="w-full mb-4">
+      <button id="history-toggle-btn" class="w-full bg-white border border-gray-200 text-gray-600 hover:text-emerald-700 px-4 py-3 rounded-xl text-xs font-semibold shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2 border-dashed">
+        📋 Ver Histórico de Pedidos
+      </button>
+    </div>
+
+    <div class="w-full bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden flex flex-col h-[520px] border border-gray-100">
+      
+      <div class="bg-emerald-700 text-white p-5 flex flex-col relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-white opacity-10 rounded-full pointer-events-none"></div>
+        <h1 class="text-base font-bold tracking-tight" id="chat-header-title">Chat de Entrega - Pedido #101</h1>
+        <div class="flex items-center gap-2 mt-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-white animate-pulse"></span>
+          <p id="order-status" class="text-xs font-medium text-white/90">Status: Carregando...</p>
+        </div>
+      </div>
+
+      <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4 bg-gray-50/50">
+      </div>
+
+      <div class="p-4 bg-white border-t border-gray-100 flex gap-2 items-center">
+        <input id="msg-input" type="text" placeholder="Digite uma mensagem como 'customer'..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all duration-200 placeholder:text-gray-400">
+        <button id="send-btn" class="bg-emerald-600 text-white h-11 px-5 rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-md shadow-emerald-600/20 active:scale-95 transition-all duration-200">
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="history-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col border-l border-gray-100">
+    <div class="bg-emerald-700 text-white p-5 flex justify-between items-center relative overflow-hidden">
+      <h2 class="font-bold text-base tracking-tight">Histórico de Pedidos</h2>
+      <button id="close-history-btn" class="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm transition-all">✕</button>
+    </div>
+    <div id="chats-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+      <p class="text-gray-400 text-xs text-center mt-4">Carregando histórico...</p>
+    </div>
+  </div>
+
+  <script>
+    let orderId = 'order-101'; 
+    
+    const messagesContainer = document.getElementById('chat-messages');
+    const statusLabel = document.getElementById('order-status');
+    const chatHeaderTitle = document.getElementById('chat-header-title');
+    const msgInput = document.getElementById('msg-input');
+    const sendBtn = document.getElementById('send-btn');
+    
+    const roleCustomerBtn = document.getElementById('role-customer-btn');
+    const roleAttendantBtn = document.getElementById('role-attendant-btn');
+    
+    const historyToggleBtn = document.getElementById('history-toggle-btn');
+    const closeHistoryBtn = document.getElementById('close-history-btn');
+    const historySidebar = document.getElementById('history-sidebar');
+    const chatsListContainer = document.getElementById('chats-list');
+
+    let currentSender = 'customer';
+
+    historyToggleBtn.addEventListener('click', () => {
+      historySidebar.classList.remove('translate-x-full');
+      loadChatsList();
+    });
+
+    closeHistoryBtn.addEventListener('click', () => {
+      historySidebar.classList.add('translate-x-full');
+    });
+
+    function setRole(role) {
+      currentSender = role;
+      msgInput.placeholder = `Digite uma mensagem como '${role}'...`;
+
+      if (role === 'customer') {
+        roleCustomerBtn.className = "flex-1 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all duration-200 transform active:scale-95";
+        roleAttendantBtn.className = "flex-1 text-gray-600 hover:text-emerald-900 px-4 py-2.5 rounded-lg text-xs font-bold opacity-60 transition-all duration-200 transform active:scale-95";
+        msgInput.className = "flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all duration-200 placeholder:text-gray-400";
+      } else {
+        roleCustomerBtn.className = "flex-1 text-gray-600 hover:text-emerald-900 px-4 py-2.5 rounded-lg text-xs font-bold opacity-60 transition-all duration-200 transform active:scale-95";
+        roleAttendantBtn.className = "flex-1 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all duration-200 transform active:scale-95";
+        msgInput.className = "flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all duration-200 placeholder:text-gray-400";
+      }
+    }
+
+    roleCustomerBtn.addEventListener('click', () => setRole('customer'));
+    roleAttendantBtn.addEventListener('click', () => setRole('atendente'));
+
+    function renderChatsList(chats) {
+      chatsListContainer.innerHTML = '';
+      chats.forEach(chat => {
+        const item = document.createElement('div');
+        // Se ativo, ganha uma borda verde esmeralda sutil
+        const isActive = chat.id === orderId ? 'border-emerald-600 bg-emerald-50/30' : 'border-gray-100 bg-white';
+        item.className = `${isActive} p-4 rounded-xl border shadow-sm cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all duration-200`;
+        
+        const customerName = chat.customer?.name || 'Cliente';
+        const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].text : 'Nenhuma mensagem';
+
+        item.innerHTML = `
+          <div class="flex justify-between items-start gap-2 mb-1">
+            <span class="font-semibold text-xs text-gray-800 truncate">#${chat.id.replace('order-', '')} - ${customerName}</span>
+            <span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md whitespace-nowrap">${chat.orderStatus}</span>
+          </div>
+          <p class="text-[11px] text-gray-400 truncate mt-1.5">${lastMessage}</p>
+        `;
+
+        item.addEventListener('click', () => {
+          orderId = chat.id;
+          chatHeaderTitle.textContent = `Chat de Entrega - Pedido #${chat.id.replace('order-', '')}`;
+          loadChat();
+          historySidebar.classList.add('translate-x-full');
+        });
+
+        chatsListContainer.appendChild(item);
+      });
+    }
+
+    async function loadChatsList() {
+      try {
+        const res = await fetch('/api/chats');
+        const chats = await res.json();
+        renderChatsList(chats);
+      } catch (err) {
+        console.error("Erro ao carregar lista de chats:", err);
+      }
+    }
+
+    function renderMessages(chat) {
+      statusLabel.textContent = `Status: ${chat.orderStatus} • Entregador: ${chat.driver?.name || 'Não atribuído'}`;
+      messagesContainer.innerHTML = '';
+
+      chat.messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = `max-w-[85%] rounded-2xl p-3.5 text-sm shadow-sm transition-all duration-200 `;
+        
+        let senderDisplayName = msg.sender.toUpperCase();
+        
+        if (msg.sender === 'customer') {
+          // Verde um pouco mais vivo para dar legibilidade às mensagens enviadas
+          div.className += 'bg-emerald-600 text-white self-end ml-auto rounded-tr-sm';
+          senderDisplayName = chat.customer?.name ? chat.customer.name.split(' ')[0].toUpperCase() : 'CLIENTE';
+        } else if (msg.sender === 'driver') {
+          div.className += 'bg-white text-gray-800 self-start rounded-tl-sm border border-gray-200 shadow-sm';
+          senderDisplayName = chat.driver?.name ? chat.driver.name.split(' ')[0].toUpperCase() : 'ENTREGADOR';
+        } else if (msg.sender === 'atendente') {
+          div.className += 'bg-gray-200 text-gray-800 self-start rounded-tl-sm border border-gray-300/40'; 
+          senderDisplayName = '💼 ATENDENTE';
+        } else {
+          div.className += 'bg-yellow-50 text-yellow-800 text-center mx-auto my-2 w-full max-w-xs rounded-xl border border-yellow-200/60 font-medium text-xs py-2';
+        }
+
+        const headerHTML = msg.sender !== 'system' 
+          ? `<p class="font-bold text-[10px] tracking-wider mb-1 opacity-70">${senderDisplayName}</p>` 
+          : '';
+
+        div.innerHTML = `
+          ${headerHTML}
+          <p class="leading-relaxed break-words">${msg.text}</p>
+          <span class="text-[9px] block text-right mt-1.5 opacity-50 font-medium">${msg.timestamp}</span>
+        `;
+        messagesContainer.appendChild(div);
+      });
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async function loadChat() {
+      try {
+        const res = await fetch(`/api/chats/${orderId}`);
+        const chat = await res.json();
+        renderMessages(chat);
+      } catch (err) {
+        console.error("Erro ao carregar chat:", err);
+      }
+    }
+
+    async function sendMessage() {
+      const text = msgInput.value.trim();
+      if (!text) return;
+
+      const res = await fetch(`/api/chats/${orderId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: currentSender, text })
+      });
+
+      if (res.ok) {
+        msgInput.value = '';
+        loadChat(); 
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    loadChat();
+    setInterval(() => {
+      loadChat();
+      if (!historySidebar.classList.contains('translate-x-full')) {
+        loadChatsList();
+      }
+    }, 3000);
+  </script>
+</body>
+</html>
